@@ -1,6 +1,6 @@
 ---
 title:  <span style="font-size:12pt">近江貝塚研第324回例会「陽明文庫所蔵史料と松尾大社所蔵史料の料紙における構成物の変化」関連データ</span>
-author: <span style="font-size:10pt">渋谷 綾子</span> 
+author: <span style="font-size:10pt">渋谷綾子（東京大学史料編纂所）</span> 
 output: 
  word_document:
     fig_width: 7
@@ -382,3 +382,7 @@ ggplot(starch, aes(x = デンプン粒の種類, y = 粒径範囲)) +
 ggsave(file = "Fig18.png", dpi = 300) # ファイルの保存
 ```
 料紙におけるデンプン粒の粒径は分散が大きい。  
+
+# 引用文献  
+藤本滋生. 1994. 澱粉と植物―各種植物澱粉の比較―. 葦書房, 東京.  
+渋谷綾子. 2010. 日本列島における現生デンプン粒標本と日本考古学研究への応用―残存デンプン粒の形態分類をめざして. 植生史研究18(1): 13-27.
