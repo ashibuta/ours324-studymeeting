@@ -1,0 +1,384 @@
+---
+title:  <span style="font-size:12pt">近江貝塚研第324回例会「陽明文庫所蔵史料と松尾大社所蔵史料の料紙における構成物の変化」関連データ</span>
+author: <span style="font-size:10pt">渋谷 綾子</span> 
+output: 
+ word_document:
+    fig_width: 7
+    fig_height: 5
+    fig_caption: true
+ html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+　このファイルは，2020年11月21日（土）近江貝塚研第324回例会（オンライン）の資料作成に使用したRマークダウンのコードである。  
+　Fig1・Fig2は，松尾大社社蔵史料と陽明文庫所蔵史料の料紙面積（サイズ）と構成物量の相関を検討したものである。Fig3～5は，松尾大社社蔵史料と陽明文庫所蔵史料に含有されたデンプン粒，鉱物，細胞組織，繊維に対する主成分分析の結果を示し，Fig6～8は陽明文庫所蔵史料について，調査史料における料紙面積と構成物（合計）の相関分析の結果である。さらに，Fig9～11は松尾大社社蔵史料の，Fig11～14は陽明文庫所蔵史料の料紙構成物（デンプン粒，鉱物，細胞組織，繊維，ほか）に対する因子分析のコードを示す。  
+　Fig15・16は，松尾大社社蔵史料の年代と細胞組織／柔組織，繊維の含有量について，それぞれ撮影1箇所あたりの計測数を表す。2018年度・2019年度の調査史料63点における含有状況であり，松尾大社のすべての史料を網羅しているわけではないことを断っておく。  
+　現生標本（イネ，アワ，キビ，ヒエ）と松尾大社社蔵史料で確認された料紙のデンプン粒（イネ，トロロアオイ，種不明）について，Fig17は同じく現生標本と陽明文庫所蔵史料で確認された料紙のデンプン粒（イネ，トロロアオイ，種不明）について，粒径の比較・検討を行い，それぞれの特徴を可視化した。デンプン粒の粒径範囲は標本によって左右されるが（藤本1994），現生標本は渋谷（2010）で計測したデータ（任意で20個抽出）にもとづくものである。松尾大社社蔵史料の料紙におけるデンプン粒は，調査史料63点の撮影箇所における計測結果を用いており，イネ223個，トロロアオイ30個，種不明106個である。Fig18の陽明文庫所蔵史料の料紙のデンプン粒は，調査史料89点の撮影箇所における計測結果を用いており，イネ329個（函番号11：89個，函番号47：223個，函番号132：17個），トロロアオイ111個（函番号11：49個，函番号47：42個，函番号47：20個），種不明3個（函番号11のみ）である。<p>
+
+```{r, message=FALSE, comment=""}
+# パッケージの読み込み
+library(ggplot2)
+library(readr)
+library(tidyverse)
+library(knitr)
+library(rmarkdown)
+library(revealjs)
+library(scales)
+library(reshape2)
+library(ggfortify)
+```
+
+# 料紙面積と構成物の相関分析（無相関検定）  
+## 松尾大社社蔵史料  
+帰無仮説H₀：母相関は0である「調査史料では料紙面積と構成物に相関がない」  
+対立仮説H₁：母相関は0ではない「調査史料では料紙面積と構成物に相関がある」
+```{r, message=FALSE, comment=""}
+tbs1 <- read_csv("matsunoo-square.csv")  # CSVファイルの読み取り
+tbs1 # 読み込んだデータ
+
+# 構成物の種類を実数型に変換
+tbs2 <-
+  tbs1 %>%
+  filter(紙素材 %in% "コウゾ") %>%　　　 # コウゾだけを選択
+  mutate(
+    面積 = as.numeric(料紙面積), 　　　　# 料紙面積を実数に変換
+    構成物合計 = as.numeric(構成物合計)) # 構成物合計を実数に変換
+
+# 料紙面積と構成物合計の相関係数と無相関検定
+attach(tbs2)
+
+cor(構成物合計,料紙面積, method="spearman") 　　 # スピアマンの相関係数
+cor.test(構成物合計,料紙面積, method="pearson")  # 無相関かどうかの検定
+
+plot(料紙面積,構成物合計, xlim=c(0,3100), ylim=c(0,140)) # xlimとylimで範囲を指定  
+abline(lm(構成物合計~料紙面積), col="red") # 回帰直線を入れる→Fig1として保存
+```
+相関係数が0.4178254であり，帰無仮説「調査史料では料紙面積と構成物に相関がない」は棄却されない（正の相関がある）。  
+
+## 陽明文庫所蔵史料  
+帰無仮説H₀：母相関は0である「調査史料では料紙面積と構成物に相関がない」  
+対立仮説H₁：母相関は0ではない「調査史料では料紙面積と構成物に相関がある」
+```{r, message=FALSE, comment=""}
+tbs3 <- read_csv("yomei-square.csv")  # CSVファイルの読み取り
+tbs3 # 読み込んだデータ
+
+# 構成物の種類を実数型に変換
+tbs4 <-
+  tbs3 %>%
+  filter(紙素材 %in% "コウゾ") %>%　　　 # コウゾだけを選択
+  mutate(
+    面積 = as.numeric(料紙面積), 　　　　# 料紙面積を実数に変換
+    構成物合計 = as.numeric(構成物合計)) # 構成物合計を実数に変換
+
+# 料紙面積と構成物合計の相関係数と無相関検定
+attach(tbs4)
+
+cor(構成物合計,料紙面積, method="spearman") 　　 # スピアマンの相関係数
+cor.test(構成物合計,料紙面積, method="pearson")  # 無相関かどうかの検定 
+
+plot(料紙面積,構成物合計, xlim=c(0,2700), ylim=c(0,270)) # xlimとylimで範囲を指定
+abline(lm(構成物合計~料紙面積), col="red") # 回帰直線を入れる→Fig2として保存
+```
+相関係数が-0.186486であり，対立仮説「調査史料では料紙面積と構成物に相関がある」は棄却される（ほとんど相関はない）。  
+
+# 料紙構成物に対する主成分分析
+## 松尾大社社蔵史料
+```{r, message=FALSE, comment=""}
+tbs5 <- read_csv("matsunoo-compo.csv")  # CSVファイルの読み取り
+tbs5 # 読み込んだデータ
+
+# 構成物の種類を実数型に変換
+tbs6 <-
+  tbs5 %>%
+  filter(紙素材 %in% "コウゾ") %>%　　　 # コウゾだけを選択
+  select(デンプン粒,鉱物,細胞組織,繊維,ほか) %>%
+  mutate(
+    デンプン粒 = as.numeric(デンプン粒), # デンプン粒を実数に変換
+    鉱物 = as.numeric(鉱物),　　　　　　 # 鉱物を実数に変換
+    細胞組織 = as.numeric(細胞組織),　　 # 細胞組織を実数に変換
+    繊維 = as.numeric(繊維),　　　　　　 # 繊維を実数に変換
+    ほか = as.numeric(ほか))　　　　　　 # ほか（他の物質）を実数に変換
+
+# 主成分分析を行うパッケージFactoMineRを読み込み，主成分分析を実行
+library(FactoMineR)
+# 主成分分析を実行
+res.pca <- 
+  PCA(tbs6,graph = FALSE)
+
+# 多変量解析の可視化に特化したfactoextraパッケージ
+library(factoextra) 
+# 各主成分の寄与率を描画
+fviz_screeplot(res.pca)
+ggsave(file = "Fig3.png", width = 6, height = 6, dpi = 300) # ファイルの保存
+
+# 主成分分析の概要を表示
+summary(res.pca)　
+
+res.pca$eig %>%
+  kable()
+# eigenvaluesは主成分の分散，percentage of variancevは寄与率，cumulative percentage of varianceが累積寄与率を示す
+# スクリープロットを作成するfviz_screeplot()は，自動的にpercentage of varianceをy値に出力する
+```
+第1主成分が34％超，第2主成分も合わせると90％近い。  
+
+### 主成分に対する各変数の寄与率を出図
+```{r, message=FALSE, comment=""}
+fviz_contrib(res.pca,  
+             choice = "var",  # 変数ごとの寄与率(ctr)
+             axes = 1,        # 主成分1を指定（変更すると各主成分が指定できる）
+             top = 10)　      # 表示する変数の数を指定
+ggsave(file = "Fig4.png", width = 6, height = 6, dpi = 300) # ファイルの保存
+
+res.pca$var$contrib %>%
+  kable() # y軸に指定されている"var"でres.pcaオブジェクトの要素であるres.pca$varを引数に指定
+```
+第1主成分は繊維，細胞組織が高い寄与率を占めることから，第1主成分は「素材由来」と要約できる。  
+
+### 主成分得点の散布図を出力  
+```{r, message=FALSE, comment=""}
+fviz_pca_biplot(res.pca) # 主成分1と2を表示，axes = C(○,○))で別の主成分を表示可能
+ggsave(file = "Fig5.png", width = 6, height = 6, dpi = 300) # ファイルの保存
+```
+細胞組織の断片と繊維は同じ意味をもつ変数，すなわち素材由来の構成物であり，デンプン粒と鉱物，ほか（他の物質）は填料を示している。
+
+## 陽明文庫所蔵史料  
+```{r, message=FALSE, comment=""}
+tbs7 <- read_csv("yomei-compo.csv")  # CSVファイルの読み取り
+tbs7 # 読み込んだデータ
+
+# 構成物の種類を実数型に変換
+tbs8 <-
+  tbs7 %>%
+  filter(紙素材 %in% "コウゾ") %>%　　　 # コウゾだけを選択
+  select(デンプン粒,鉱物,細胞組織,繊維,ほか) %>%
+  mutate(
+    デンプン粒 = as.numeric(デンプン粒), # デンプン粒を実数に変換
+    鉱物 = as.numeric(鉱物),　　　　　　 # 鉱物を実数に変換
+    細胞組織 = as.numeric(細胞組織),　　 # 細胞組織を実数に変換
+    繊維 = as.numeric(繊維),　　　　　　 # 繊維を実数に変換
+    ほか = as.numeric(ほか))　　　　　　 # ほか（他の物質）を実数に変換
+
+# 主成分分析を行うパッケージFactoMineRを読み込み，主成分分析を実行
+library(FactoMineR)
+# 主成分分析を実行
+res.pca <- 
+  PCA(tbs8,graph = FALSE)
+
+# 多変量解析の可視化に特化したfactoextraパッケージ
+library(factoextra) 
+# 各主成分の寄与率を描画
+fviz_screeplot(res.pca)
+ggsave(file = "Fig6.png", width = 6, height = 6, dpi = 300) # ファイルの保存
+
+# 主成分分析の概要を表示
+summary(res.pca)　
+
+res.pca$eig %>%
+  kable()
+# eigenvaluesは主成分の分散，percentage of variancevは寄与率，cumulative percentage of varianceが累積寄与率を示す
+# スクリープロットを作成するfviz_screeplot()は，自動的にpercentage of varianceをy値に出力する
+```
+第1主成分が27％超，第2主成分も合わせると80％近い。  
+
+### 主成分に対する各変数の寄与率を出図
+```{r, message=FALSE, comment=""}
+fviz_contrib(res.pca,  
+             choice = "var",  # 変数ごとの寄与率(ctr)
+             axes = 1,        # 主成分1を指定（変更すると各主成分が指定できる）
+             top = 10)　      # 表示する変数の数を指定
+ggsave(file = "Fig7.png", width = 6, height = 6, dpi = 300) # ファイルの保存
+
+res.pca$var$contrib %>%
+  kable() # y軸に指定されている"var"でres.pcaオブジェクトの要素であるres.pca$varを引数に指定
+```
+第1主成分はデンプン粒，ほか（塵や墨などの物質）が高い寄与率を占めることから，第1主成分は「填料とたの物質の混合」と要約できる。  
+
+### 主成分得点の散布図を出力
+```{r, message=FALSE, comment=""}
+# 主成分1と2を表示
+fviz_pca_biplot(res.pca) # 主成分1と2を表示，axes = C(○,○))で別の主成分を表示可能
+ggsave(file = "Fig8.png", width = 6, height = 6, dpi = 300) # ファイルの保存
+```
+デンプン粒と鉱物は，同じ意味を持つ変数，すなわち填料である。細胞組織の断片，繊維とほか（他の物質）は異なる変数を示すため，素材由来の構成物だけの含有ではない。
+
+# 料紙構成物の因子分析
+料紙構成物に共通して影響する因子を仮定，この因子から変数間の相関関係を考える。  
+
+## 松尾大社社蔵史料  
+```{r, message=FALSE, comment=""}
+# 因子分析を行うパッケージを読み込む
+library(psych)
+library(GPArotation)
+
+tbs9<- read_csv("matsunoo-compo.csv")  # CSVファイルの読み取り
+tbs9 # 読み込んだデータ
+
+# 構成物の種類を実数型に変換
+tbs10 <-
+  tbs9 %>%
+  filter(紙素材 %in% "コウゾ") %>%　　　 # コウゾだけを選択
+  select(デンプン粒,鉱物,細胞組織,繊維,ほか) %>%
+  mutate(
+    デンプン粒 = as.numeric(デンプン粒), # デンプン粒を実数に変換
+    鉱物 = as.numeric(鉱物),　　　　　　 # 鉱物を実数に変換
+    細胞組織 = as.numeric(細胞組織),　　 # 細胞組織を実数に変換
+    繊維 = as.numeric(繊維),　　　　　　 # 繊維を実数に変換
+    ほか = as.numeric(ほか))　　　　　　 # ほか（他の物質）を実数に変換
+
+# 構成物間の相関係数を出す
+相関行列 <- cor(tbs10)
+相関行列
+
+# 因子数を決める
+fa.parallel(tbs10,SMC=TRUE) # スクリープロットを表示
+vss(tbs8, n.obs=N, rotate="varimax")
+# 結果として，平行分析では3因子，MAP法では1因子，適合度基準（BIC）では2因子が良い。ここでは3因子で決める。
+
+# 因子分析を行う
+fa.result1 <- fa(tbs8,nfactors=3,fm="ML")
+print(fa.result1, sort=T, cut=0.3) # 因子負荷が0.3以下の値を非表示
+
+# 因子負荷の可視化
+fa.result1 = fa(tbs10, nfactors=3, fm="minres",rotate="oblimin",use="complete.obs")
+fa.diagram(fa.result1)
+
+# 因子負荷量の表示
+unclass(fa.result1$loadings)
+
+# 描画
+biplot(fa.result1$scores,fa.result1$loading,cex=1)
+```
+
+## 陽明文庫所蔵史料の料紙構成物
+```{r, message=FALSE, comment=""}
+tbs11<- read_csv("yomei-compo.csv")  # CSVファイルの読み取り
+tbs11 # 読み込んだデータ
+
+# 構成物の種類を実数型に変換
+tbs12 <-
+  tbs11 %>%
+  filter(紙素材 %in% "コウゾ") %>%　　　 # コウゾだけを選択
+  select(デンプン粒,鉱物,細胞組織,繊維,ほか) %>%
+  mutate(
+    デンプン粒 = as.numeric(デンプン粒), # デンプン粒を実数に変換
+    鉱物 = as.numeric(鉱物),　　　　　　 # 鉱物を実数に変換
+    細胞組織 = as.numeric(細胞組織),　　 # 細胞組織を実数に変換
+    繊維 = as.numeric(繊維),　　　　　　 # 繊維を実数に変換
+    ほか = as.numeric(ほか))　　　　　　 # ほか（他の物質）を実数に変換
+
+# 構成物間の相関係数を出す
+相関行列 <- cor(tbs12)
+相関行列
+
+# 因子数を決める
+fa.parallel(tbs12,SMC=TRUE) # スクリープロットを表示
+vss(tbs10, n.obs=N, rotate="varimax")
+# 結果として，平行分析では3因子，MAP法では1因子，適合度基準（BIC）では2因子が良い。ここでは3因子で決める。
+
+# 因子分析を行う
+fa.result2 <- fa(tbs12,nfactors=3,fm="ML")
+print(fa.result2, sort=T, cut=0.3) # 因子負荷が0.3以下の値を非表示
+
+# 因子負荷の可視化
+fa.result2 = fa(tbs12, nfactors=3, fm="minres",rotate="oblimin",use="complete.obs")
+fa.diagram(fa.result2)
+
+# 因子負荷量の表示
+unclass(fa.result2$loadings)
+
+# 描画
+biplot(fa.result2$scores,fa.result2$loading,cex=1)
+```
+
+# 松尾大社社蔵史料の料紙構成物における時期的変化
+## 細胞組織・柔細胞
+```{r, message=FALSE, comment=""}
+# Fig3(1)作成のためのCSVファイルの読み取り
+tissue <- read_csv("matsunoo_tissue-fibre.csv")
+
+head(tissue)　 # データフレームの上6行を表示
+names(tissue)  # tissue-fibreに含まれるすべての変数名
+dim(tissue)　  # tissue-fibreに含まれる観測数と変数の数を表示させる 
+
+ggplot(tissue, aes(x = 西暦, y = 細胞組織)) +
+  geom_area(colour = "#005aff", fill ="#005aff", alpha=0.5) + # 網掛け領域付きの折れ線グラフの作成
+  scale_x_continuous(breaks = c(1160,1200,1300,1400,1500,1600,1700,1800,1860), 
+                     limits = c(1160,1870), expand = c(0,0)) + # X軸の目盛りを指定
+  scale_y_continuous(breaks = c(0,10,20,30,40,50,60,70,80,90), limits = c(0,90), expand = c(0,0))+ # Y軸の目盛りを指定
+  labs(x = "史料の年代（西暦）", y = "計測数") + # ラベルの指定
+  theme_classic()
+ggsave(file = "Fig15.png", width = 6, height = 4, dpi = 300) # ファイルの保存
+```
+調査史料では1300年代と1600年代後半に画期がある。  
+
+## 繊維
+```{r, message=FALSE, comment=""}
+ggplot(tissue, aes(x = 西暦, y = 繊維)) +
+  geom_area(colour = "#005aff", fill ="#005aff", alpha=0.5) + # 網掛け領域付きの折れ線グラフの作成
+  scale_x_continuous(breaks = c(1160,1200,1300,1400,1500,1600,1700,1800,1860), 
+                     limits = c(1160,1870), expand = c(0,0)) + # X軸の目盛りを指定
+  scale_y_continuous(breaks = c(0,2,4,6,8,10), limits = c(0,10), expand = c(0,0))+ # Y軸の目盛りを指定
+  labs(x = "史料の年代（西暦）", y = "計測数") + # ラベルの指定
+  theme_classic()
+ggsave(file = "Fig16.png", width = 6, height = 4, dpi = 300) # ファイルの保存
+```
+調査史料では1500年代以降は減少傾向。 
+
+# 現生デンプン粒標本と料紙のデンプン粒の比較
+## 松尾大社社蔵史料の料紙に含有されたデンプン粒
+```{r, message=FALSE, comment=""}
+# Fig1作成のためのCSVファイルの読み取り
+starch <- read_csv("matsuono_ryoshi-starch.csv")
+
+head(starch)　 # データフレームの上6行を表示
+names(starch)  # starchに含まれるすべての変数名
+dim(starch)　  # starchに含まれる観測数と変数の数を表示させる 
+
+n_fun <- function(x){
+return(data.frame(y = max(x)+3.5, label = paste0("n = ",length(x))))
+}
+
+ggplot(starch, aes(x = デンプン粒の種類, y = 粒径範囲)) +
+  geom_violin(trim=T,fill="#2F80FF",linetype="blank",alpha=I(1/3),adjust=2.5)+ # バイオリンプロット作成
+  stat_summary(geom="pointrange",fun = mean, fun.min = function(x) mean(x)-sd(x), 
+               fun.max = function(x) mean(x)+sd(x), size=.5,alpha=.5)+ # 平均値±標準偏差をプロット
+  stat_summary(fun.data = n_fun, geom = "text",colour="black",size=4)+ # 各グループのデータ数を最大値の位置に追加
+  scale_y_continuous(breaks = c(0,10,20,30,40,50), limits = c(0,50), expand = c(0,0))+ # 数値軸の目盛りを指定
+  scale_x_discrete(limit=c("トロロアオイ_松尾","種不明_松尾","イネ_松尾","現生イネ","現生アワ","現生キビ","現生ヒエ")) +
+  # 文字軸の順番を指定
+  coord_flip() +　# 90度横向きにする
+  labs(x = "デンプン粒の種類", y = "粒径範囲（μm）") + # ラベルの指定
+  theme_classic()
+ggsave(file = "Fig17.png", dpi = 300) # ファイルの保存
+```
+料紙におけるデンプン粒の粒径は分散が大きい。
+
+## 陽明文庫所蔵史料の料紙に含有されたデンプン粒
+```{r, message=FALSE, comment=""}
+# Fig2作成のためのCSVファイルの読み取り
+starch <- read_csv("yomei-starch.csv")
+
+head(starch)　 # データフレームの上6行を表示
+names(starch)  # starchに含まれるすべての変数名
+dim(starch)　  # starchに含まれる観測数と変数の数を表示させる 
+
+n_fun <- function(x){
+return(data.frame(y = max(x)+2.5, label = paste0("n = ",length(x))))
+}
+
+ggplot(starch, aes(x = デンプン粒の種類, y = 粒径範囲)) +
+  geom_violin(trim=T,fill="#2F80FF",linetype="blank",alpha=I(1/3),adjust=2.5)+ # バイオリンプロット作成
+  stat_summary(geom="pointrange",fun = mean, fun.min = function(x) mean(x)-sd(x), 
+               fun.max = function(x) mean(x)+sd(x), size=.5,alpha=.5)+ # 平均値±標準偏差をプロット
+  stat_summary(fun.data = n_fun, geom = "text",colour="black",size=4)+ # 各グループのデータ数を最大値の位置に追加
+  scale_y_continuous(breaks = c(0,10,20,30,40,50), limits = c(0,50), expand = c(0,0))+ # 数値軸の目盛りを指定
+  scale_x_discrete(limit=c("トロロアオイ_函11","トロロアオイ_函47","トロロアオイ_函132","種不明_函11","イネ_函11","イネ_函47","イネ_函132","現生イネ","現生アワ","現生キビ","現生ヒエ")) + # 文字軸の順番を指定
+  coord_flip() +　# 90度横向きにする
+  labs(x = "デンプン粒の種類", y = "粒径範囲（μm）") + # ラベルの指定
+  theme_classic()
+ggsave(file = "Fig18.png", dpi = 300) # ファイルの保存
+```
+料紙におけるデンプン粒の粒径は分散が大きい。  
